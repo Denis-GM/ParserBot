@@ -2,7 +2,7 @@ package models;
 
 import java.util.List;
 
-public class LegalEntityInfo {
+public class BusinessInfo {
     private String fullLegalName;
     private String director;
     private String inn;
@@ -12,9 +12,9 @@ public class LegalEntityInfo {
     private List<String> emails;
     private List<String> sites;
 
-    public LegalEntityInfo(){ }
+    public BusinessInfo(){ }
 
-    public LegalEntityInfo(String inn, String status){
+    public BusinessInfo(String inn, String status){
         this.inn = inn;
         this.status = status;
     }

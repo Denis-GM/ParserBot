@@ -1,15 +1,13 @@
 package parsers;
 
-import models.LegalEntityInfo;
+import models.BusinessInfo;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Stack;
 
 public class ListorgParser {
 
-    public LegalEntityInfo Parser(String info) {
-        LegalEntityInfo legalEntityInfo = new LegalEntityInfo();
+    public BusinessInfo Parser(String info) {
+        BusinessInfo businessInfo = new BusinessInfo();
 
         for(var el : info.split("\\n")){
             var line = el.split(":");
@@ -19,42 +17,42 @@ public class ListorgParser {
 
             switch (fieldName){
                 case "Полное юридическое наименование":
-                    legalEntityInfo.setFullLegalName(fieldValue);
+                    businessInfo.setFullLegalName(fieldValue);
                     break;
 
                 case "Руководитель":
                     String[] fullNameDirector = fieldValue.split(" ");
                     int count = fullNameDirector.length;
-                    legalEntityInfo.setDirector(
+                    businessInfo.setDirector(
                             fullNameDirector[count - 3] + " " + fullNameDirector[count - 2] + " " + fullNameDirector[count - 1]);
                     break;
 
                 case "ИНН / КПП":
-                    legalEntityInfo.setInn(fieldValue.split("/")[0].trim());
+                    businessInfo.setInn(fieldValue.split("/")[0].trim());
                     break;
 
                 case "Статус":
-                    legalEntityInfo.setStatus(fieldValue);
+                    businessInfo.setStatus(fieldValue);
                     break;
 
                 case "Адрес":
-                    legalEntityInfo.setAddress(fieldValue);
+                    businessInfo.setAddress(fieldValue);
                     break;
 
                 case "Телефон":
-                    legalEntityInfo.setPhoneNumbers(Arrays.stream(fieldValue.split(",")).toList());
+                    businessInfo.setPhoneNumbers(Arrays.stream(fieldValue.split(",")).toList());
                     break;
 
                 case "E-mail":
-                    legalEntityInfo.setEmails(Arrays.stream(fieldValue.split(",")).toList());
+                    businessInfo.setEmails(Arrays.stream(fieldValue.split(",")).toList());
                     break;
 
                 case "Сайт":
-                    legalEntityInfo.setSites(Arrays.stream(fieldValue.split(",")).toList());
+                    businessInfo.setSites(Arrays.stream(fieldValue.split(",")).toList());
                     break;
             }
         }
 
-        return legalEntityInfo;
+        return businessInfo;
     }
 }
