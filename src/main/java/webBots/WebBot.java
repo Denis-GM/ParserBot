@@ -2,6 +2,8 @@ package webBots;
 
 import models.BusinessInfo;
 import models.BusinessInfoSearch;
+import models.Filters;
+import models.Persons;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -23,38 +25,64 @@ public class WebBot {
         driver.manage().timeouts().implicitlyWait(java.time.Duration.ofMillis(500));
     }
 
-    public static BusinessInfo Search(BusinessInfoSearch searchText){
-        CheckRecaptcha();
-        WebElement textBox = driver.findElement(By.name("val"));
-        textBox.clear();
-        WebElement submitButton;
-
-        try {
-            submitButton = driver.findElement(By.cssSelector(".input-group .btn-primary"));
-        }
-        catch (Exception e){
-            submitButton = driver.findElement(By.cssSelector(".input-group button"));
-        }
-
-        textBox.sendKeys(searchText.getName());
-        submitButton.click();
+    public static BusinessInfo StartSearchListOrg(BusinessInfoSearch searchText){
+        GetListByFilter(searchText, Filters.all);
         CheckRecaptcha();
 
 //      На странице только ОДИН элемент
         WebElement content = driver.findElement(By.cssSelector(".content p"));
         if(content != null && Integer.parseInt(content.getText().split(" ")[1]) == 1){
-            WebElement btn = driver.findElement(By.cssSelector(".org_list p label a"));
-            btn.click();
-
-            return GetInfo();
+            return SearchJuristicPerson();
+        }
+//      На странице НЕТ элементов
+        else if(content != null && Integer.parseInt(content.getText().split(" ")[1]) == 0){
+            GetListByFilter(searchText, Filters.fio);
+            return SearchPhysicalPerson();
         }
         return new BusinessInfo();
     }
 
-    public static BusinessInfo GetInfo() {
-        List<WebElement> contactInformation = driver.findElements(By.cssSelector(".content .card"));
-        String mainInfo = contactInformation.get(1).getText();
-        String contactInfo = contactInformation.get(2).getText();
+    public static void GetListByFilter(BusinessInfoSearch searchTextInfo, Filters type){
+        String searchText = switch (type) {
+            case Filters.all -> String.join(",",
+                    searchTextInfo.getName(), searchTextInfo.getIndex(), searchTextInfo.getAddress());
+            case Filters.name -> searchTextInfo.getName();
+            case Filters.fio -> searchTextInfo.getName();
+            case Filters.address -> String.join(",", searchTextInfo.getIndex(), searchTextInfo.getAddress());
+            case Filters.trademark -> searchTextInfo.getTrademarkNumber();
+            default -> "";
+        };
+        String current_url = String.format("https://www.list-org.com/search?val=%s&type=%s", searchText, type);
+        driver.get(current_url);
+    }
+
+    public static BusinessInfo SearchJuristicPerson(){
+        WebElement btn = driver.findElement(By.cssSelector(".org_list p label a"));
+        btn.click();
+        return GetInfoByPage(Persons.Juristic);
+    }
+
+    public static BusinessInfo SearchPhysicalPerson(){
+        try {
+            WebElement btn = driver.findElement(By.cssSelector(".org_list p a"));
+            btn.click();
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return GetInfoByPage(Persons.Physical);
+    }
+
+    public static BusinessInfo GetInfoByPage(Persons type) {
+        String mainInfo = "", contactInfo = "";
+        if(Persons.Juristic == type){
+            List<WebElement> contactInformation = driver.findElements(By.cssSelector(".content .card"));
+            mainInfo = contactInformation.get(1).getText();
+            contactInfo = contactInformation.get(2).getText();
+        }
+        else if(Persons.Physical == type){
+
+        }
 
         ListorgParser listorgParser = new ListorgParser();
         BusinessInfo businessInfo = listorgParser.Parser(String.join("\n", mainInfo, contactInfo));
@@ -79,7 +107,7 @@ public class WebBot {
             WaitRecaptcha();
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
+//            System.out.println(e.getMessage());
         }
     }
 }

@@ -1,6 +1,5 @@
 import models.BusinessInfo;
 import models.BusinessInfoSearch;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -8,10 +7,8 @@ import webBots.WebBot;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Stack;
 
 public class Excel {
     public static void readFromExcel(String file) throws IOException {
@@ -27,17 +24,18 @@ public class Excel {
                     continue;
                 }
                 var infoSearch = ParseRow(row);
-//                BusinessInfo info = WebBot.Search(infoSearch);
-//                System.out.printf(
-//                        "Полное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
-//                        info.getFullLegalName(), info.getDirector(), info.getInn(), info.getStatus());
-//                System.out.println("\n------------------------------------------------");
 
                 System.out.println(infoSearch.getName());
                 System.out.println(infoSearch.getIndex());
                 System.out.println(infoSearch.getAddress());
                 System.out.println(counter);
-                System.out.println("\n------------------------------------------------\n");
+
+                BusinessInfo info = WebBot.StartSearchListOrg(infoSearch);
+                System.out.printf(
+                        "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
+                        info.getFullLegalName(), info.getDirector(), info.getInn(), info.getStatus());
+                System.out.println("\n------------------------------------------------");
+
             }
             fileExcel.close();
         }

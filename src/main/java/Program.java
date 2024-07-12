@@ -5,7 +5,8 @@ import java.io.IOException;
 
 public class Program {
     public static void main(String[] args) {
-//        WebBot.Connect("https://www.list-org.com/");
+        WebBot.Connect("https://www.list-org.com/");
+//        WebBot.Connect("https://www.list-org.com/search?val=N/");
         try {
             Excel.readFromExcel("src/main/resources/Выгрузка от 5 июня (2300).xlsx");
         }
