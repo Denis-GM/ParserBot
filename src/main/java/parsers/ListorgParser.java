@@ -16,8 +16,9 @@ public class ListorgParser {
             String fieldValue = line.length > 1 ? line[1].trim() : "";
 
             switch (fieldName){
+//                Юридическое лицо
                 case "Полное юридическое наименование":
-                    businessInfo.setFullLegalName(fieldValue);
+                    businessInfo.setFullName(fieldValue);
                     break;
 
                 case "Руководитель":
@@ -49,6 +50,14 @@ public class ListorgParser {
 
                 case "Сайт":
                     businessInfo.setSites(Arrays.stream(fieldValue.split(",")).toList());
+                    break;
+
+//                Физическое лицо
+                case "ФИО":
+                    businessInfo.setFullName(fieldValue);
+                    break;
+                case "ИНН":
+                    businessInfo.setInn(fieldValue);
                     break;
             }
         }

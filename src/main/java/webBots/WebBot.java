@@ -8,6 +8,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import parsers.ListorgParser;
@@ -16,13 +17,18 @@ import java.time.Duration;
 import java.util.List;
 
 public class WebBot {
-
-    private static final WebDriver driver = new ChromeDriver();
+    private static WebDriver driver = new ChromeDriver(new ChromeOptions().addArguments("--remote-allow-origins=*"));
     //WebDriver driver = new PhantomDriver();
 
-    public static void Connect(String url){
+    private WebBot(){ }
+
+    public static void Start(String url){
         driver.get(url);
         driver.manage().timeouts().implicitlyWait(java.time.Duration.ofMillis(500));
+    }
+
+    public static void Stop(){
+        driver.quit();
     }
 
     public static BusinessInfo StartSearchListOrg(BusinessInfoSearch searchText){
@@ -81,7 +87,8 @@ public class WebBot {
             contactInfo = contactInformation.get(2).getText();
         }
         else if(Persons.Physical == type){
-
+            List<WebElement> contactInformation = driver.findElements(By.cssSelector(".content .card"));
+            mainInfo = contactInformation.get(1).getText();
         }
 
         ListorgParser listorgParser = new ListorgParser();

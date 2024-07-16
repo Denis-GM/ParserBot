@@ -3,7 +3,7 @@ package models;
 import java.util.List;
 
 public class BusinessInfo {
-    private String fullLegalName;
+    private String fullName;
     private String director;
     private String inn;
     private String status;
@@ -19,12 +19,12 @@ public class BusinessInfo {
         this.status = status;
     }
 
-    public String getFullLegalName() {
-        return fullLegalName;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setFullLegalName(String fullLegalName) {
-        this.fullLegalName = fullLegalName;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getDirector() {

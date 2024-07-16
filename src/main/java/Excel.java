@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 public class Excel {
+
     public static void readFromExcel(String file) throws IOException {
         try {
             FileInputStream fileExcel = new FileInputStream(file);
@@ -33,7 +34,7 @@ public class Excel {
                 BusinessInfo info = WebBot.StartSearchListOrg(infoSearch);
                 System.out.printf(
                         "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
-                        info.getFullLegalName(), info.getDirector(), info.getInn(), info.getStatus());
+                        info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
                 System.out.println("\n------------------------------------------------");
 
             }
