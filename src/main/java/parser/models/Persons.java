@@ -1,4 +1,4 @@
-package models;
+package parser.models;
 
 public enum Persons {
     Physical,

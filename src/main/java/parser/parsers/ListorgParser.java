@@ -1,6 +1,6 @@
-package parsers;
+package parser.parsers;
 
-import models.BusinessInfo;
+import parser.models.BusinessInfo;
 
 import java.util.Arrays;
 

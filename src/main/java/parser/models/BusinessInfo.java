@@ -1,5 +1,6 @@
-package models;
+package parser.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BusinessInfo {
@@ -89,5 +90,12 @@ public class BusinessInfo {
 
     public void setSites(List<String> sites) {
         this.sites = sites;
+    }
+
+    public boolean isEmpty(){
+        boolean con = fullName == null && director == null && inn == null &&
+                status == null && address == null && phoneNumbers == null &&
+                emails == null && sites == null;
+        return con;
     }
 }

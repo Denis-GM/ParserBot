@@ -1,9 +1,9 @@
-package webBots;
+package parser;
 
-import models.BusinessInfo;
-import models.BusinessInfoSearch;
-import models.Filters;
-import models.Persons;
+import parser.models.BusinessInfo;
+import parser.models.BusinessInfoSearch;
+import parser.models.Filters;
+import parser.models.Persons;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -11,9 +11,11 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import parsers.ListorgParser;
+import parser.parsers.ListorgParser;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class WebBot {
@@ -35,20 +37,79 @@ public class WebBot {
         GetListByFilter(searchText, Filters.all);
         CheckRecaptcha();
 
-//      На странице только ОДИН элемент
-        WebElement content = driver.findElement(By.cssSelector(".content p"));
-        if(content != null && Integer.parseInt(content.getText().split(" ")[1]) == 1){
-            return SearchJuristicPerson();
-        }
-//      На странице НЕТ элементов
-        else if(content != null && Integer.parseInt(content.getText().split(" ")[1]) == 0){
+        LinkedList<String> fullAddress = new LinkedList<>(
+                Arrays.asList(searchText.getAddress().split(",")));
+        BusinessInfo businessInfo = RecursiveSearchJuristicPerson(searchText.getName(), fullAddress);
+        if(businessInfo.isEmpty()){
             GetListByFilter(searchText, Filters.fio);
-            return SearchPhysicalPerson();
+            businessInfo = RecursiveSearchPhysicalPerson(searchText.getName(), fullAddress);
         }
-        return new BusinessInfo();
+        return businessInfo;
     }
 
-    public static void GetListByFilter(BusinessInfoSearch searchTextInfo, Filters type){
+    private static int GetNumberItemsOnPage(){
+        WebElement content = driver.findElement(By.cssSelector(".content p"));
+        if(content != null){
+            return Integer.parseInt(content.getText().split(" ")[1]);
+        }
+        return -1;
+    }
+
+    private static BusinessInfo RecursiveSearchJuristicPerson(String name, LinkedList<String> fullAddress){
+        BusinessInfo businessInfo = new BusinessInfo();
+        String address = String.join(",", fullAddress);
+        String searchText = String.join(",", name, address);
+
+        String current_url = String.format("https://www.list-org.com/search?val=%s&type=all", searchText);
+        driver.get(current_url);
+
+        if(GetNumberItemsOnPage() == 1){
+            businessInfo = GetJuristicPerson();
+        }
+        else {
+            CheckRecaptcha();
+
+            if(fullAddress.size() > 1){
+                fullAddress.removeLast();
+                businessInfo = RecursiveSearchJuristicPerson(name, fullAddress);
+            }
+            //скать ИП
+            else {
+//                if(name.split(" ").length <= 3)
+//                    businessInfo = RecursiveSearch(name, fullAddress, Filters.fio);
+//                else
+                return businessInfo;
+            }
+        }
+        return businessInfo;
+    }
+
+    private static BusinessInfo RecursiveSearchPhysicalPerson(String name, LinkedList<String> fullAddress){
+        BusinessInfo businessInfo = new BusinessInfo();
+        String address = String.join(",", fullAddress);
+        String searchText = String.join(",", name, address);
+
+        String current_url = String.format("https://www.list-org.com/search?val=%s&type=fio", searchText);
+        driver.get(current_url);
+
+        if(GetNumberItemsOnPage() == 1){
+            businessInfo = GetPhysicalPerson();
+        }
+        else {
+            CheckRecaptcha();
+
+            if(fullAddress.size() > 1){
+                fullAddress.removeLast();
+                businessInfo = RecursiveSearchPhysicalPerson(name, fullAddress);
+            }
+            else {
+                return businessInfo;
+            }
+        }
+        return businessInfo;
+    }
+
+    private static void GetListByFilter(BusinessInfoSearch searchTextInfo, Filters type){
         String searchText = switch (type) {
             case Filters.all -> String.join(",",
                     searchTextInfo.getName(), searchTextInfo.getIndex(), searchTextInfo.getAddress());
@@ -62,13 +123,13 @@ public class WebBot {
         driver.get(current_url);
     }
 
-    public static BusinessInfo SearchJuristicPerson(){
+    public static BusinessInfo GetJuristicPerson(){
         WebElement btn = driver.findElement(By.cssSelector(".org_list p label a"));
         btn.click();
         return GetInfoByPage(Persons.Juristic);
     }
 
-    public static BusinessInfo SearchPhysicalPerson(){
+    public static BusinessInfo GetPhysicalPerson(){
         try {
             WebElement btn = driver.findElement(By.cssSelector(".org_list p a"));
             btn.click();

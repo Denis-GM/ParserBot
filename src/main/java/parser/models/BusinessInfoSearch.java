@@ -1,4 +1,4 @@
-package models;
+package parser.models;
 
 public class BusinessInfoSearch {
     private String name;
