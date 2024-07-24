@@ -1,4 +1,4 @@
-package parser;
+package parser.app;
 
 import java.awt.*;
 
@@ -7,7 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-public class DeskApp {
+public class Application {
     private JFrame frame = new JFrame("WebParser");
 
     private JButton appStartBtn;
@@ -20,8 +20,8 @@ public class DeskApp {
 
     private  boolean programIsRunning = false;
 
-    public DeskApp(){
-        AddLocalizationForJFileChooser();
+    public Application(){
+        addLocalizationForJFileChooser();
         createGUI();
     }
 
@@ -94,7 +94,7 @@ public class DeskApp {
         appStartBtn.setBackground(Color.WHITE);
         appStartBtn.addActionListener(new Start());
         cst.fill = GridBagConstraints.HORIZONTAL;
-        cst.insets = new Insets(50, 0, 0, 5);
+        cst.insets = new Insets(50, 0, 0, 0);
         cst.gridwidth = 1;
         cst.gridx = 2;
         cst.gridy = 4;
@@ -131,8 +131,7 @@ public class DeskApp {
         frame.setVisible(true);
     }
 
-    private JMenu createFileMenu()
-    {
+    private JMenu createFileMenu() {
         JMenu file = new JMenu("Файл");
         JMenuItem open = new JMenuItem("Открыть", new ImageIcon("images/open.png"));
         open.addActionListener(new SelectFileInDirectory());
@@ -148,8 +147,7 @@ public class DeskApp {
         return file;
     }
 
-    private JMenu createViewMenu()
-    {
+    private JMenu createViewMenu() {
         JMenu viewMenu = new JMenu("Вид");
 
         JCheckBoxMenuItem line  = new JCheckBoxMenuItem("Фиксированный размер окна");
@@ -162,16 +160,9 @@ public class DeskApp {
         return viewMenu;
     }
 
-
-    class ExitAction extends AbstractAction
-    {
-        private static final long serialVersionUID = 1L;
-        ExitAction() {
-            putValue(NAME, "Выход");
-        }
-        public void actionPerformed(ActionEvent e) {
-            System.exit(0);
-        }
+    private void checkStatusApplication(){
+        appStartBtn.setVisible(!programIsRunning);
+        appStopBtn.setVisible(programIsRunning);
     }
 
     private class SelectFileInDirectory implements ActionListener {
@@ -194,14 +185,20 @@ public class DeskApp {
                 public void run() {
                     errorLabel.setText("В процессе...");
                     programIsRunning = true;
-                    CheckStatusApplication();
+                    checkStatusApplication();
                     try {
-                        WebBot.Start("https://www.list-org.com/search?val=N/");
+//                        WebBot.Start("https://www.list-org.com/search?val=N/");
 
                         Excel excel = new Excel(filePath);
                         excel.readFromExcel();
                     }
                     catch(Exception exception) {
+                        try {
+
+                        }
+                        catch (Exception e){
+
+                        }
                         errorLabel.setText("Ошибка");
                         System.out.println(exception);
                     }
@@ -216,7 +213,7 @@ public class DeskApp {
             WebBot.Stop();
 
             programIsRunning = false;
-            CheckStatusApplication();
+            checkStatusApplication();
 
             errorLabel.setText("Принудительное завершение");
         }
@@ -236,12 +233,17 @@ public class DeskApp {
         }
     }
 
-    private void CheckStatusApplication(){
-        appStartBtn.setVisible(!programIsRunning);
-        appStopBtn.setVisible(programIsRunning);
+    private class ExitAction extends AbstractAction {
+        private static final long serialVersionUID = 1L;
+        ExitAction() {
+            putValue(NAME, "Выход");
+        }
+        public void actionPerformed(ActionEvent e) {
+            System.exit(0);
+        }
     }
 
-    private void AddLocalizationForJFileChooser() {
+    private void addLocalizationForJFileChooser() {
         UIManager.put("FileChooser.saveButtonText"      , "Сохранить"             );
         UIManager.put("FileChooser.openButtonText"      , "Открыть"               );
         UIManager.put("FileChooser.cancelButtonText"    , "Отмена"                );

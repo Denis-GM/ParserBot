@@ -1,6 +1,6 @@
 package parser.models;
 
-public enum Persons {
+public enum Person {
     Physical,
     Juristic
 }

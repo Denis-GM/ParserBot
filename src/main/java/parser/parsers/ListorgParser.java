@@ -45,7 +45,15 @@ public class ListorgParser {
                     break;
 
                 case "E-mail":
-                    businessInfo.setEmails(Arrays.stream(fieldValue.split(",")).toList());
+                    if(line.length > 2){
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (int i = 1; i < line.length; i++)
+                            stringBuilder.append(line[i]);
+                        String value = stringBuilder.toString().trim();
+                        businessInfo.setPhoneNumbers(Arrays.stream(value.split(",")).toList());
+                    }
+                    else
+                        businessInfo.setEmails(Arrays.stream(fieldValue.split(",")).toList());
                     break;
 
                 case "Сайт":

@@ -1,11 +1,14 @@
-package parser;
+package parser.app;
 
-import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import parser.models.BusinessInfo;
 import parser.models.BusinessInfoSearch;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import parser.models.ExcelParseNamePerson;
+import parser.models.Person;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,12 +20,24 @@ public class Excel {
     private static String file = "";
     private static FileInputStream fileExcel;
     private static XSSFWorkbook workbook;
+    private static XSSFSheet sheet;
+    private static XSSFCellStyle style;
 
     public Excel(String file) {
         try {
             this.file = file;
             fileExcel = new FileInputStream(file);
             workbook = new XSSFWorkbook(fileExcel);
+            sheet = workbook.getSheetAt(0);
+
+            for(int i = 7; i < 21; i++){
+                sheet.setColumnWidth(i,10000);
+            }
+
+            style = workbook.createCellStyle();
+            style.setAlignment(XSSFCellStyle.ALIGN_LEFT);
+            style.setVerticalAlignment(XSSFCellStyle.VERTICAL_TOP);
+            style.setWrapText(true);
         }
         catch (Exception e){
             System.out.println(e.getMessage());
@@ -31,27 +46,31 @@ public class Excel {
 
     public static void readFromExcel() throws IOException {
         try {
-            XSSFSheet sheet = workbook.getSheetAt(0);
-
             int counter = 0;
             for (Row row : sheet) {
                 counter++;
-                if(counter < 3){
+                if(counter < 2){
                     continue;
                 }
                 var infoSearch = ParseRow(row);
 
-                System.out.println(infoSearch.getName());
+                System.out.println(infoSearch.getType());
+                System.out.println(infoSearch.getTypePerson());
+                System.out.println(infoSearch.getShortName());
+                System.out.println(infoSearch.getFullName());
+
                 System.out.println(infoSearch.getIndex());
                 System.out.println(infoSearch.getAddress());
                 System.out.println(counter);
 
-                BusinessInfo info = WebBot.StartSearchListOrg(infoSearch);
+                WebBot webBot = new WebBot();
+//                BusinessInfo info = WebBot.StartSearchListOrg(infoSearch);
+                BusinessInfo info = webBot.StartSearchChecko(infoSearch);
                 FillRow(row, info, file, workbook);
-                System.out.printf(
-                        "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
-                        info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
-                System.out.println("\n------------------------------------------------");
+//                System.out.printf(
+//                        "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
+//                        info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
+//                System.out.println("\n------------------------------------------------");
             }
             fileExcel.close();
         }
@@ -61,21 +80,36 @@ public class Excel {
     }
 
     private static void FillRow(Row row, BusinessInfo businessInfo, String file, XSSFWorkbook workbook){
-        row.createCell(7).setCellValue(businessInfo.getInn());
-        row.createCell(8).setCellValue(businessInfo.getStatus());
+        Cell cell_7 = row.createCell(7);
+        cell_7.setCellStyle(style);
+        cell_7.setCellValue(businessInfo.getInn());
 
-        String innExists = (businessInfo.getInn() != null) ? "Есть" : "Нет";
-        row.createCell(9).setCellValue(innExists);
+        Cell cell_8 = row.createCell(8);
+        cell_8.setCellStyle(style);
+        cell_8.setCellValue(businessInfo.getStatus());
 
-        row.createCell(10).setCellValue(businessInfo.getDirector());
+        Cell cell_9 = row.createCell(9);
+        cell_9.setCellStyle(style);
+        if(!businessInfo.isEmpty()){
+            String innExists = (businessInfo.getInn() != null) ? "Есть" : "Нет";
+            cell_9.setCellValue(innExists);
+        }
 
-        row.createCell(11).setCellValue(businessInfo.getAddress());
+        Cell cell_10 = row.createCell(10);
+        cell_10.setCellStyle(style);
+        cell_10.setCellValue(businessInfo.getDirector());
+
+        Cell cell_11 = row.createCell(11);
+        cell_11.setCellStyle(style);
+        cell_11.setCellValue(businessInfo.getAddress());
 
         int index = 13;
         if(businessInfo.getPhoneNumbers() != null)
             for(var phoneNumber : businessInfo.getPhoneNumbers()) {
                 if(index > 17) break;
-                row.createCell(index).setCellValue(phoneNumber);
+                Cell cellIndex = row.createCell(index);
+                cellIndex.setCellStyle(style);
+                cellIndex.setCellValue(phoneNumber);
                 index++;
             }
         index = 18;
@@ -83,15 +117,19 @@ public class Excel {
         if(businessInfo.getEmails() != null)
             for(var email : businessInfo.getEmails()) {
                 if(index > 19) break;
-                row.createCell(index).setCellValue(email);
+                Cell cellIndex = row.createCell(index);
+                cellIndex.setCellStyle(style);
+                cellIndex.setCellValue(email);
                 index++;
             }
         index = 20;
 
         if(businessInfo.getSites() != null)
-            for(var email : businessInfo.getSites()) {
+            for(var Site : businessInfo.getSites()) {
                 if(index > 21) break;
-                row.createCell(index).setCellValue(email);
+                Cell cellIndex = row.createCell(index);
+                cellIndex.setCellStyle(style);
+                cellIndex.setCellValue(Site);
                 index++;
             }
 
@@ -115,8 +153,14 @@ public class Excel {
 
         if(fourthCellArrayLen > 1){
             for(int i = 0; i < fourthCellArrayLen; i++){
-                if(i == 0)
-                    infoSearch.setName(fourthCellArray.get(i).trim());
+                if(i == 0){
+                    String fullNamePerson = fourthCellArray.get(i).trim();
+                    ExcelParseNamePerson excelParseNamePerson = CreateNamePerson(fullNamePerson);
+                    infoSearch.setShortName(excelParseNamePerson.getShortName());
+                    infoSearch.setFullName(excelParseNamePerson.getFullName());
+                    infoSearch.setType(excelParseNamePerson.getType());
+                    infoSearch.setTypePerson(excelParseNamePerson.getTypePerson());
+                }
                 else if(i == 1)
                     infoSearch.setIndex(fourthCellArray.get(i).trim());
                 else {
@@ -130,7 +174,7 @@ public class Excel {
             }
         }
         else {
-            infoSearch.setName(fourthCellArray.getFirst());
+            infoSearch.setFullName(fourthCellArray.getFirst());
 
             String fullAddress = row.getCell(4).toString().trim();
             LinkedList<String> fullAddressArray = ConvertArrayToLinkedList(fullAddress.split(","));
@@ -150,6 +194,24 @@ public class Excel {
             }
         }
         return infoSearch;
+    }
+
+    private static ExcelParseNamePerson CreateNamePerson(String fullName){
+        ExcelParseNamePerson excelParseNamePerson = new ExcelParseNamePerson();
+        excelParseNamePerson.setFullName(fullName);
+        int index = fullName.indexOf('"');
+        if(index != -1){
+            int startIndex = index != -1 ? index + 1 : 0;
+            excelParseNamePerson.setShortName(fullName.substring(startIndex, fullName.length() - 1));
+            excelParseNamePerson.setTypePerson(Person.Juristic);
+            excelParseNamePerson.setType(fullName.substring(0, startIndex - 1));
+        }
+        else {
+            excelParseNamePerson.setShortName(fullName);
+            excelParseNamePerson.setTypePerson(Person.Physical);
+            excelParseNamePerson.setType("Индивидуальный предприниматель");
+        }
+        return excelParseNamePerson;
     }
 
     private static LinkedList<String> ConvertArrayToLinkedList(String[] array){

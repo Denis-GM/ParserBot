@@ -1,19 +1,32 @@
 package parser.models;
 
 public class BusinessInfoSearch {
-    private String name;
+    private String fullName;
+    private String shortName;
+
+    private String type;
+    private Person typePerson;
+
     private String index;
     private String address;
 
     private String trademarkName;
     private String trademarkNumber;
 
-    public String getName() {
-        return name;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 
     public String getIndex() {
@@ -46,5 +59,21 @@ public class BusinessInfoSearch {
 
     public void setTrademarkNumber(String trademarkNumber) {
         this.trademarkNumber = trademarkNumber;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Person getTypePerson() {
+        return typePerson;
+    }
+
+    public void setTypePerson(Person typePerson) {
+        this.typePerson = typePerson;
     }
 }

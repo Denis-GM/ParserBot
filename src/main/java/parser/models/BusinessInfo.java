@@ -5,6 +5,7 @@ import java.util.List;
 
 public class BusinessInfo {
     private String fullName;
+    private String name;
     private String director;
     private String inn;
     private String status;
@@ -26,6 +27,14 @@ public class BusinessInfo {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDirector() {
