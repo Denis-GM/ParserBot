@@ -48,7 +48,7 @@ public class Excel {
         try {
             int startIndex = 2;
             int counter = 0;
-            for(int i = sheet.getLastRowNum(); i >= startIndex; i--){
+            for(int i = GetCountRow(); i >= startIndex; i--){
                 if(sheet.getRow(i).getCell(6) != null && sheet.getRow(i).getCell(6).toString() != ""){
                     startIndex = i + 1;
                     break;
@@ -59,8 +59,8 @@ public class Excel {
                 if(counter < startIndex){
                     continue;
                 }
+                Application.UpdateProgress(counter);
                 var infoSearch = ParseRow(row);
-
                 System.out.println(counter);
                 System.out.println(infoSearch.getFullName());
 
@@ -218,5 +218,9 @@ public class Excel {
         LinkedList<String> linkedList = new LinkedList<>();
         Collections.addAll(linkedList, array);
         return linkedList;
+    }
+
+    public static int GetCountRow(){
+        return sheet.getLastRowNum();
     }
 }

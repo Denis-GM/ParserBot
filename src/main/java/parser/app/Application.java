@@ -13,7 +13,8 @@ public class Application {
     private JButton appStartBtn;
     private JButton appStopBtn;
     private JLabel labelFilePath;
-    private JLabel errorLabel;
+    private static JLabel errorLabel;
+    private static int countRow;
 
     private String fileName = "файл не выбран";
     private String filePath = "";
@@ -187,9 +188,8 @@ public class Application {
                     programIsRunning = true;
                     checkStatusApplication();
                     try {
-//                        WebBot.Start("https://www.list-org.com/search?val=N/");
-
                         Excel excel = new Excel(filePath);
+                        countRow = excel.GetCountRow() + 1;
                         excel.readFromExcel();
                     }
                     catch(Exception exception) {
@@ -241,6 +241,10 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             System.exit(0);
         }
+    }
+
+    public static void UpdateProgress(int curValue){
+        errorLabel.setText(String.format("%s из %s", curValue, countRow));
     }
 
     private void addLocalizationForJFileChooser() {
