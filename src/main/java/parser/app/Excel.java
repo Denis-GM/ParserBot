@@ -46,31 +46,31 @@ public class Excel {
 
     public static void readFromExcel() throws IOException {
         try {
+            int startIndex = 2;
             int counter = 0;
+            for(int i = sheet.getLastRowNum(); i >= startIndex; i--){
+                if(sheet.getRow(i).getCell(6) != null && sheet.getRow(i).getCell(6).toString() != ""){
+                    startIndex = i + 1;
+                    break;
+                }
+            }
             for (Row row : sheet) {
                 counter++;
-                if(counter < 2){
+                if(counter < startIndex){
                     continue;
                 }
                 var infoSearch = ParseRow(row);
 
-                System.out.println(infoSearch.getType());
-                System.out.println(infoSearch.getTypePerson());
-                System.out.println(infoSearch.getShortName());
+                System.out.println(counter);
                 System.out.println(infoSearch.getFullName());
 
-                System.out.println(infoSearch.getIndex());
-                System.out.println(infoSearch.getAddress());
-                System.out.println(counter);
-
                 WebBot webBot = new WebBot();
-//                BusinessInfo info = WebBot.StartSearchListOrg(infoSearch);
-                BusinessInfo info = webBot.StartSearchChecko(infoSearch);
+                BusinessInfo info = webBot.StartSearch(infoSearch);
                 FillRow(row, info, file, workbook);
-//                System.out.printf(
-//                        "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
-//                        info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
-//                System.out.println("\n------------------------------------------------");
+                System.out.printf(
+                        "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
+                        info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
+                System.out.println("\n------------------------------------------------");
             }
             fileExcel.close();
         }
@@ -80,53 +80,53 @@ public class Excel {
     }
 
     private static void FillRow(Row row, BusinessInfo businessInfo, String file, XSSFWorkbook workbook){
-        Cell cell_7 = row.createCell(7);
+        Cell cell_7 = row.createCell(6);
         cell_7.setCellStyle(style);
         cell_7.setCellValue(businessInfo.getInn());
 
-        Cell cell_8 = row.createCell(8);
+        Cell cell_8 = row.createCell(7);
         cell_8.setCellStyle(style);
         cell_8.setCellValue(businessInfo.getStatus());
 
-        Cell cell_9 = row.createCell(9);
+        Cell cell_9 = row.createCell(8);
         cell_9.setCellStyle(style);
         if(!businessInfo.isEmpty()){
             String innExists = (businessInfo.getInn() != null) ? "Есть" : "Нет";
             cell_9.setCellValue(innExists);
         }
 
-        Cell cell_10 = row.createCell(10);
+        Cell cell_10 = row.createCell(9);
         cell_10.setCellStyle(style);
         cell_10.setCellValue(businessInfo.getDirector());
 
-        Cell cell_11 = row.createCell(11);
+        Cell cell_11 = row.createCell(10);
         cell_11.setCellStyle(style);
         cell_11.setCellValue(businessInfo.getAddress());
 
-        int index = 13;
+        int index = 12;
         if(businessInfo.getPhoneNumbers() != null)
             for(var phoneNumber : businessInfo.getPhoneNumbers()) {
-                if(index > 17) break;
+                if(index > 16) break;
                 Cell cellIndex = row.createCell(index);
                 cellIndex.setCellStyle(style);
                 cellIndex.setCellValue(phoneNumber);
                 index++;
             }
-        index = 18;
 
+        index = 17;
         if(businessInfo.getEmails() != null)
             for(var email : businessInfo.getEmails()) {
-                if(index > 19) break;
+                if(index > 18) break;
                 Cell cellIndex = row.createCell(index);
                 cellIndex.setCellStyle(style);
                 cellIndex.setCellValue(email);
                 index++;
             }
-        index = 20;
 
+        index = 19;
         if(businessInfo.getSites() != null)
             for(var Site : businessInfo.getSites()) {
-                if(index > 21) break;
+                if(index > 20) break;
                 Cell cellIndex = row.createCell(index);
                 cellIndex.setCellStyle(style);
                 cellIndex.setCellValue(Site);

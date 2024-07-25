@@ -8,7 +8,6 @@ public class ListorgParser {
 
     public BusinessInfo Parser(String info) {
         BusinessInfo businessInfo = new BusinessInfo();
-
         for(var el : info.split("\\n")){
             var line = el.split(":");
 
@@ -45,19 +44,19 @@ public class ListorgParser {
                     break;
 
                 case "E-mail":
+                    businessInfo.setEmails(Arrays.stream(fieldValue.split(",")).toList());
+                    break;
+
+                case "Сайт":
                     if(line.length > 2){
                         StringBuilder stringBuilder = new StringBuilder();
                         for (int i = 1; i < line.length; i++)
                             stringBuilder.append(line[i]);
                         String value = stringBuilder.toString().trim();
-                        businessInfo.setPhoneNumbers(Arrays.stream(value.split(",")).toList());
+                        businessInfo.setSites(Arrays.stream(value.split(",")).toList());
                     }
                     else
-                        businessInfo.setEmails(Arrays.stream(fieldValue.split(",")).toList());
-                    break;
-
-                case "Сайт":
-                    businessInfo.setSites(Arrays.stream(fieldValue.split(",")).toList());
+                        businessInfo.setSites(Arrays.stream(fieldValue.split(",")).toList());
                     break;
 
 //                Физическое лицо
@@ -69,7 +68,6 @@ public class ListorgParser {
                     break;
             }
         }
-
         return businessInfo;
     }
 }
