@@ -48,30 +48,31 @@ public class Excel {
         try {
             int startIndex = 2;
             int counter = 0;
+
             for(int i = GetCountRow(); i >= startIndex; i--){
                 if(sheet.getRow(i).getCell(6) != null && sheet.getRow(i).getCell(6).toString() != ""){
                     startIndex = i + 1;
                     break;
                 }
             }
+
             for (Row row : sheet) {
                 counter++;
                 if(counter < startIndex){
                     continue;
                 }
-                Application.UpdateProgress(counter);
+                Application.updateProgressStatus(counter);
                 var infoSearch = ParseRow(row);
                 System.out.println(counter);
                 System.out.println(infoSearch.getFullName());
-
-                WebBot webBot = new WebBot();
-                BusinessInfo info = webBot.StartSearch(infoSearch);
+                BusinessInfo info = WebBot.startSearch(infoSearch);
                 FillRow(row, info, file, workbook);
                 System.out.printf(
                         "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
                         info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
                 System.out.println("\n------------------------------------------------");
             }
+
             fileExcel.close();
         }
         catch (Exception e) {
@@ -133,7 +134,6 @@ public class Excel {
                 index++;
             }
 
-        // Работа с файлом завершена, он закрыт
         try (FileOutputStream out = new FileOutputStream(file)) {
             workbook.write(out);
         }

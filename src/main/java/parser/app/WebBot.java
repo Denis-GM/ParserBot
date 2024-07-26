@@ -17,20 +17,24 @@ import java.time.Duration;
 import java.util.*;
 
 public class WebBot {
-    private static WebDriver driver = new ChromeDriver(new ChromeOptions().addArguments("--remote-allow-origins=*"));
+    private static int delayRecaptchaSolution = 120;
+    private static WebDriver driver;
     private static Map<String,String> dictTypesPerson = new HashMap<String,String>();
 
     public WebBot(){
         initDictTypesPerson();
     }
 
-    public static void Start(String url){
-        driver.get(url);
+    public static void Start(){
+        driver = new ChromeDriver(new ChromeOptions().addArguments("--remote-allow-origins=*"));
+        driver.get("https://www.google.com/");
         driver.manage().timeouts().implicitlyWait(java.time.Duration.ofMillis(500));
     }
 
     public static void Stop(){
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     private static void GoToPageByUrl(String url, String value1, String value2){
@@ -121,8 +125,7 @@ public class WebBot {
     }
 
 
-
-    public static BusinessInfo StartSearch(BusinessInfoSearch searchText){
+    public static BusinessInfo startSearch(BusinessInfoSearch searchText){
         BusinessInfo businessInfo;
         LinkedList<String> fullAddress = new LinkedList<>(
                 Arrays.asList(searchText.getAddress().split(",")));
@@ -223,11 +226,16 @@ public class WebBot {
         WebElement recaptchaCheckbox = driver.findElement(By.cssSelector("#recaptcha-anchor"));
         recaptchaCheckbox.click();
         driver.switchTo().defaultContent();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(delayRecaptchaSolution));
+
+        Application.setStatus("Ожидает решения ReCaptcha");
+        Application.startTimer();
 
         wait.until(ExpectedConditions.elementToBeClickable
                 (By.cssSelector("div.recaptcha-checkbox-checkmark")))
                 .click();
+
+        Application.stopTimer();
     }
 
     private static void CheckRecaptcha() {
@@ -249,5 +257,13 @@ public class WebBot {
         dictTypesPerson.put("Общество с ограниченной ответственностью", "OOO");
         dictTypesPerson.put("Краевое государственное автономное учреждение", "КГАУ");
         dictTypesPerson.put("Федеральное государственное автономное образовательное учреждение высшего образования", "ФГАОУ ВО");
+    }
+
+    public static int GetDelayRecaptchaSolution(){
+        return delayRecaptchaSolution;
+    }
+
+    public static void SetDelayRecaptchaSolution(int delay){
+        delayRecaptchaSolution = delay;
     }
 }

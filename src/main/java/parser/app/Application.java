@@ -8,26 +8,60 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 public class Application {
-    private JFrame frame = new JFrame("WebParser");
+    private static JFrame frame = new JFrame("WebParser");
 
-    private JButton appStartBtn;
-    private JButton appStopBtn;
-    private JLabel labelFilePath;
+    private static JButton appStartBtn;
+    private static JButton appStopBtn;
     private static JLabel errorLabel;
+
+    private static JTextField delayField;
+    private static JLabel delayCounter;
+    private static Timer swingTimer;
+
     private static int countRow;
 
-    private String fileName = "файл не выбран";
-    private String filePath = "";
+    private static JLabel labelFilePath;
+    private static String fileName = "файл не выбран";
+    private static String filePath = "";
 
-    private  boolean programIsRunning = false;
+    private static boolean programIsRunning = false;
 
     public Application(){
         addLocalizationForJFileChooser();
         createGUI();
     }
 
+    public static void startTimer(){
+        int delayRecaptchaSolution = WebBot.GetDelayRecaptchaSolution();
+        swingTimer = new Timer(1000, new ActionListener() {
+            int counter = delayRecaptchaSolution;
+            public void actionPerformed(ActionEvent e) {
+                delayCounter.setText(String.format("%s", counter));
+                counter--;
+                if(counter < 0) {
+                    stopTimer();
+                    delayCounter.setText(String.format("%s", WebBot.GetDelayRecaptchaSolution()));
+                }
+            }
+        });
+        swingTimer.start();
+    }
+
+    public static void stopTimer(){
+        if(swingTimer != null){
+            swingTimer.stop();
+        }
+    }
+
+    public static void setStatus(String status){
+        errorLabel.setText(status);
+    }
+
+    public static void updateProgressStatus(int curValue){
+        errorLabel.setText(String.format("%s из %s", curValue, countRow));
+    }
+
     private void createGUI() {
-//        frame.setSize(500, 250);
         frame.setResizable(false);
         frame.setMinimumSize(new Dimension(600, 400));
         frame.setLocationRelativeTo(null); // окно в центре экрана
@@ -35,7 +69,6 @@ public class Application {
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints cst = new GridBagConstraints();
-//        cst.weightx = 1.0;
         cst.weighty = 1.0;
 
         JMenuBar menuBar = new JMenuBar();
@@ -70,22 +103,51 @@ public class Application {
         cst.gridy = 1;
         panel.add(selectFile,cst);
 
-        JLabel progress = new JLabel("Прогресс: ");
-        progress.setPreferredSize(new Dimension(150, 30));
+        JLabel delayLabel = new JLabel("Задержка: ");
+        delayLabel.setPreferredSize(new Dimension(150, 30));
         cst.fill = GridBagConstraints.HORIZONTAL;
-        cst.insets = new Insets(-20, 0, 0, 0);
+        cst.insets = new Insets(0, 0, 0, 0);
         cst.gridwidth = 1;
         cst.gridx = 1;
         cst.gridy = 2;
-        panel.add(progress,cst);
+        panel.add(delayLabel,cst);
 
-        errorLabel = new JLabel("", JLabel.CENTER);
-        errorLabel.setPreferredSize(new Dimension(150, 30));
-        cst.insets = new Insets(-20, 0, 0, 0);
+        delayField= new JTextField();
+        delayField.setPreferredSize(new Dimension(150, 30));
+        delayField.setText("120");
+        cst.insets = new Insets(0, 0, 0, 0);
         cst.fill = GridBagConstraints.HORIZONTAL;
         cst.gridwidth = 2;
         cst.gridx = 2;
         cst.gridy = 2;
+        panel.add(delayField,cst);
+
+        delayCounter = new JLabel(String.format("%s", WebBot.GetDelayRecaptchaSolution()), JLabel.CENTER);
+        delayCounter.setPreferredSize(new Dimension(150, 30));
+        cst.insets = new Insets(0, 0, 0, 0);
+        cst.fill = GridBagConstraints.HORIZONTAL;
+        cst.gridwidth = 2;
+        cst.gridx = 2;
+        cst.gridy = 2;
+        panel.add(delayCounter,cst);
+        delayCounter.setVisible(programIsRunning);
+
+        JLabel progress = new JLabel("Прогресс: ");
+        progress.setPreferredSize(new Dimension(150, 30));
+        cst.fill = GridBagConstraints.HORIZONTAL;
+        cst.insets = new Insets(0, 0, 0, 0);
+        cst.gridwidth = 1;
+        cst.gridx = 1;
+        cst.gridy = 3;
+        panel.add(progress,cst);
+
+        errorLabel = new JLabel("", JLabel.CENTER);
+        errorLabel.setPreferredSize(new Dimension(150, 30));
+        cst.insets = new Insets(0, 0, 0, 0);
+        cst.fill = GridBagConstraints.HORIZONTAL;
+        cst.gridwidth = 2;
+        cst.gridx = 2;
+        cst.gridy = 3;
         panel.add(errorLabel,cst);
 
         appStartBtn = new JButton("Запустить");
@@ -93,12 +155,12 @@ public class Application {
         appStartBtn.setPreferredSize(new Dimension(130, 30));
         appStartBtn.setForeground(Color.BLACK);
         appStartBtn.setBackground(Color.WHITE);
-        appStartBtn.addActionListener(new Start());
+        appStartBtn.addActionListener(new StartAppForButton());
         cst.fill = GridBagConstraints.HORIZONTAL;
         cst.insets = new Insets(50, 0, 0, 0);
         cst.gridwidth = 1;
         cst.gridx = 2;
-        cst.gridy = 4;
+        cst.gridy = 5;
         panel.add(appStartBtn,cst);
 
         appStopBtn = new JButton("Отмена");
@@ -106,12 +168,12 @@ public class Application {
         appStopBtn.setPreferredSize(new Dimension(130, 30));
         appStopBtn.setForeground(Color.BLACK);
         appStopBtn.setBackground(Color.WHITE);
-        appStopBtn.addActionListener(new Stop());
+        appStopBtn.addActionListener(new StopAppForButton());
         cst.fill = GridBagConstraints.HORIZONTAL;
         cst.insets = new Insets(50, 0, 0, 0);
         cst.gridwidth = 1;
         cst.gridx = 2;
-        cst.gridy = 4;
+        cst.gridy = 5;
         panel.add(appStopBtn,cst);
         appStopBtn.setVisible(programIsRunning);
 
@@ -120,12 +182,12 @@ public class Application {
         close.setPreferredSize(new Dimension(130, 20));
         close.setForeground(Color.BLACK);
         close.setBackground(Color.WHITE);
-        close.addActionListener(new Close());
+        close.addActionListener(new CloseApp());
         cst.fill = GridBagConstraints.HORIZONTAL;
         cst.insets = new Insets(25, 0, 0, 0);
         cst.gridwidth = 1;
         cst.gridx = 3;
-        cst.gridy = 5;
+        cst.gridy = 6;
         panel.add(close,cst);
 
         frame.getContentPane().add(panel);
@@ -141,29 +203,39 @@ public class Application {
         JMenuItem help = new JMenuItem("Помощь");
         file.add(help);
 
-        JMenuItem exit = new JMenuItem(new ExitAction());
+        JMenuItem exit = new JMenuItem(new ExitApp());
         exit.setIcon(new ImageIcon("images/exit.png"));
         file.add(exit);
 
         return file;
     }
 
-    private JMenu createViewMenu() {
-        JMenu viewMenu = new JMenu("Вид");
-
-        JCheckBoxMenuItem line  = new JCheckBoxMenuItem("Фиксированный размер окна");
-        line.setState(true);
-        viewMenu.add(line);
-
-        JCheckBoxMenuItem grid  = new JCheckBoxMenuItem("Сетка");
-        viewMenu.add(grid);
-
-        return viewMenu;
-    }
-
-    private void checkStatusApplication(){
+    private static void checkStatusApplication(){
         appStartBtn.setVisible(!programIsRunning);
         appStopBtn.setVisible(programIsRunning);
+
+        delayField.setVisible(!programIsRunning);
+        delayCounter.setVisible(programIsRunning);
+    }
+
+    private void addLocalizationForJFileChooser() {
+        UIManager.put("FileChooser.saveButtonText"      , "Сохранить"             );
+        UIManager.put("FileChooser.openButtonText"      , "Открыть"               );
+        UIManager.put("FileChooser.cancelButtonText"    , "Отмена"                );
+        UIManager.put("FileChooser.fileNameLabelText"   , "Наименование файла"    );
+        UIManager.put("FileChooser.filesOfTypeLabelText", "Типы файлов"           );
+        UIManager.put("FileChooser.lookInLabelText"     , "Директория"            );
+        UIManager.put("FileChooser.saveInLabelText"     , "Сохранить в директории");
+        UIManager.put("FileChooser.folderNameLabelText" , "Путь директории"       );
+    }
+
+    private static void StopApp(){
+        WebBot.Stop();
+        Application.stopTimer();
+        programIsRunning = false;
+        checkStatusApplication();
+
+        errorLabel.setText("Принудительное завершение");
     }
 
     private class SelectFileInDirectory implements ActionListener {
@@ -180,10 +252,13 @@ public class Application {
         }
     }
 
-    private class Start implements ActionListener {
+    private static class StartAppForButton implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             Thread thread = new Thread() {
                 public void run() {
+                    WebBot.Start();
+                    WebBot.SetDelayRecaptchaSolution(Integer.parseInt(delayField.getText()));
+                    delayCounter.setText(String.format("%s", WebBot.GetDelayRecaptchaSolution()));
                     errorLabel.setText("В процессе...");
                     programIsRunning = true;
                     checkStatusApplication();
@@ -193,12 +268,6 @@ public class Application {
                         excel.readFromExcel();
                     }
                     catch(Exception exception) {
-                        try {
-
-                        }
-                        catch (Exception e){
-
-                        }
                         errorLabel.setText("Ошибка");
                         System.out.println(exception);
                     }
@@ -208,18 +277,13 @@ public class Application {
         }
     }
 
-    private class Stop implements ActionListener {
+    private static class StopAppForButton implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            WebBot.Stop();
-
-            programIsRunning = false;
-            checkStatusApplication();
-
-            errorLabel.setText("Принудительное завершение");
+            StopApp();
         }
     }
 
-    private class Close implements ActionListener {
+    private class CloseApp implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             int option = JOptionPane.showConfirmDialog(
                     frame,
@@ -228,33 +292,22 @@ public class Application {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (option == JOptionPane.YES_OPTION) {
+                StopApp();
                 System.exit(0);
             }
         }
     }
 
-    private class ExitAction extends AbstractAction {
+    private class ExitApp extends AbstractAction {
         private static final long serialVersionUID = 1L;
-        ExitAction() {
+
+        ExitApp() {
             putValue(NAME, "Выход");
         }
+
         public void actionPerformed(ActionEvent e) {
+            StopApp();
             System.exit(0);
         }
-    }
-
-    public static void UpdateProgress(int curValue){
-        errorLabel.setText(String.format("%s из %s", curValue, countRow));
-    }
-
-    private void addLocalizationForJFileChooser() {
-        UIManager.put("FileChooser.saveButtonText"      , "Сохранить"             );
-        UIManager.put("FileChooser.openButtonText"      , "Открыть"               );
-        UIManager.put("FileChooser.cancelButtonText"    , "Отмена"                );
-        UIManager.put("FileChooser.fileNameLabelText"   , "Наименование файла"    );
-        UIManager.put("FileChooser.filesOfTypeLabelText", "Типы файлов"           );
-        UIManager.put("FileChooser.lookInLabelText"     , "Директория"            );
-        UIManager.put("FileChooser.saveInLabelText"     , "Сохранить в директории");
-        UIManager.put("FileChooser.folderNameLabelText" , "Путь директории"       );
     }
 }
