@@ -32,7 +32,7 @@ public class Application {
     }
 
     public static void startTimer(){
-        int delayRecaptchaSolution = WebBot.GetDelayRecaptchaSolution();
+        int delayRecaptchaSolution = WebBot.getDelayRecaptchaSolution();
         swingTimer = new Timer(1000, new ActionListener() {
             int counter = delayRecaptchaSolution;
             public void actionPerformed(ActionEvent e) {
@@ -40,7 +40,7 @@ public class Application {
                 counter--;
                 if(counter < 0) {
                     stopTimer();
-                    delayCounter.setText(String.format("%s", WebBot.GetDelayRecaptchaSolution()));
+                    delayCounter.setText(String.format("%s", WebBot.getDelayRecaptchaSolution()));
                 }
             }
         });
@@ -122,7 +122,7 @@ public class Application {
         cst.gridy = 2;
         panel.add(delayField,cst);
 
-        delayCounter = new JLabel(String.format("%s", WebBot.GetDelayRecaptchaSolution()), JLabel.CENTER);
+        delayCounter = new JLabel(String.format("%s", WebBot.getDelayRecaptchaSolution()), JLabel.CENTER);
         delayCounter.setPreferredSize(new Dimension(150, 30));
         cst.insets = new Insets(0, 0, 0, 0);
         cst.fill = GridBagConstraints.HORIZONTAL;
@@ -230,7 +230,7 @@ public class Application {
     }
 
     private static void StopApp(){
-        WebBot.Stop();
+        WebBot.stop();
         Application.stopTimer();
         programIsRunning = false;
         checkStatusApplication();
@@ -256,9 +256,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             Thread thread = new Thread() {
                 public void run() {
-                    WebBot.Start();
-                    WebBot.SetDelayRecaptchaSolution(Integer.parseInt(delayField.getText()));
-                    delayCounter.setText(String.format("%s", WebBot.GetDelayRecaptchaSolution()));
+                    WebBot.start();
+                    WebBot.setDelayRecaptchaSolution(Integer.parseInt(delayField.getText()));
+                    delayCounter.setText(String.format("%s", WebBot.getDelayRecaptchaSolution()));
                     errorLabel.setText("В процессе...");
                     programIsRunning = true;
                     checkStatusApplication();

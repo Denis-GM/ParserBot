@@ -62,15 +62,9 @@ public class Excel {
                     continue;
                 }
                 Application.updateProgressStatus(counter);
-                var infoSearch = ParseRow(row);
-                System.out.println(counter);
-                System.out.println(infoSearch.getFullName());
+                var infoSearch = parseRow(row);
                 BusinessInfo info = WebBot.startSearch(infoSearch);
-                FillRow(row, info, file, workbook);
-                System.out.printf(
-                        "\nПолное юридическое наименование: %s\nРуководитель: %s\nИНН: %s\nСтатус: %s",
-                        info.getFullName(), info.getDirector(), info.getInn(), info.getStatus());
-                System.out.println("\n------------------------------------------------");
+                fillRow(row, info, file, workbook);
             }
 
             fileExcel.close();
@@ -80,7 +74,7 @@ public class Excel {
         }
     }
 
-    private static void FillRow(Row row, BusinessInfo businessInfo, String file, XSSFWorkbook workbook){
+    private static void fillRow(Row row, BusinessInfo businessInfo, String file, XSSFWorkbook workbook){
         Cell cell_7 = row.createCell(6);
         cell_7.setCellStyle(style);
         cell_7.setCellValue(businessInfo.getInn());
@@ -142,20 +136,20 @@ public class Excel {
         }
     }
 
-    public static BusinessInfoSearch ParseRow(Row row) {
+    public static BusinessInfoSearch parseRow(Row row) {
         var infoSearch = new BusinessInfoSearch();
         infoSearch.setTrademarkNumber(row.getCell(1).toString());
         infoSearch.setTrademarkName(row.getCell(2).toString());
 
         String fourthCell = row.getCell(3).toString().trim();
-        LinkedList<String> fourthCellArray = ConvertArrayToLinkedList(fourthCell.split(","));
+        LinkedList<String> fourthCellArray = convertArrayToLinkedList(fourthCell.split(","));
         int fourthCellArrayLen = fourthCellArray.size();
 
         if(fourthCellArrayLen > 1){
             for(int i = 0; i < fourthCellArrayLen; i++){
                 if(i == 0){
                     String fullNamePerson = fourthCellArray.get(i).trim();
-                    ExcelParseNamePerson excelParseNamePerson = CreateNamePerson(fullNamePerson);
+                    ExcelParseNamePerson excelParseNamePerson = createNamePerson(fullNamePerson);
                     infoSearch.setShortName(excelParseNamePerson.getShortName());
                     infoSearch.setFullName(excelParseNamePerson.getFullName());
                     infoSearch.setType(excelParseNamePerson.getType());
@@ -177,7 +171,7 @@ public class Excel {
             infoSearch.setFullName(fourthCellArray.getFirst());
 
             String fullAddress = row.getCell(4).toString().trim();
-            LinkedList<String> fullAddressArray = ConvertArrayToLinkedList(fullAddress.split(","));
+            LinkedList<String> fullAddressArray = convertArrayToLinkedList(fullAddress.split(","));
             int fullAddressArrayLen = fullAddressArray.size();
 
             for(int i = 0; i < fullAddressArrayLen; i++){
@@ -196,7 +190,7 @@ public class Excel {
         return infoSearch;
     }
 
-    private static ExcelParseNamePerson CreateNamePerson(String fullName){
+    private static ExcelParseNamePerson createNamePerson(String fullName){
         ExcelParseNamePerson excelParseNamePerson = new ExcelParseNamePerson();
         excelParseNamePerson.setFullName(fullName);
         int index = fullName.indexOf('"');
@@ -214,7 +208,7 @@ public class Excel {
         return excelParseNamePerson;
     }
 
-    private static LinkedList<String> ConvertArrayToLinkedList(String[] array){
+    private static LinkedList<String> convertArrayToLinkedList(String[] array){
         LinkedList<String> linkedList = new LinkedList<>();
         Collections.addAll(linkedList, array);
         return linkedList;

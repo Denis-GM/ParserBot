@@ -25,30 +25,30 @@ public class WebBot {
         initDictTypesPerson();
     }
 
-    public static void Start(){
+    public static void start(){
         driver = new ChromeDriver(new ChromeOptions().addArguments("--remote-allow-origins=*"));
         driver.get("https://www.google.com/");
         driver.manage().timeouts().implicitlyWait(java.time.Duration.ofMillis(500));
     }
 
-    public static void Stop(){
+    public static void stop(){
         if (driver != null) {
             driver.quit();
         }
     }
 
-    private static void GoToPageByUrl(String url, String value1, String value2){
+    private static void goToPageByUrl(String url, String value1, String value2){
         String current_url = String.format(url, value1, value2);
         driver.get(current_url);
-        CheckRecaptcha();
+        checkRecaptcha();
     }
 
-    private static BusinessInfo SearchJuristicPersonChecko(String name, LinkedList<String> fullAddress){
+    private static BusinessInfo searchJuristicPersonChecko(String name, LinkedList<String> fullAddress){
         int page = 1;
         BusinessInfo businessInfo = new BusinessInfo();
         String address = String.join(",", fullAddress);
-        GoToPageByUrl("https://checko.ru/search?query=%s&page=%s", name, Integer.toString(page));
-        int countPages = GetCountPagesChecko();
+        goToPageByUrl("https://checko.ru/search?query=%s&page=%s", name, Integer.toString(page));
+        int countPages = getCountPagesChecko();
         for(int i = 1; i <= countPages; i++) {
             List<WebElement> listJuristicPerson =
                     driver.findElements(By.cssSelector(".uk-container .uk-table tr"));
@@ -56,18 +56,16 @@ public class WebBot {
                 List<WebElement> juristicPersonInfo = juristicPerson
                         .findElements(By.cssSelector("td"))
                         .get(1).findElements(By.cssSelector("div"));
-                System.out.println(juristicPersonInfo.get(0).getText());
-                System.out.println(juristicPersonInfo.get(2).getText());
             }
         }
         return businessInfo;
     }
 
-    private static BusinessInfo SearchPhysicalPersonChecko(String name, LinkedList<String> fullAddress){
+    private static BusinessInfo searchPhysicalPersonChecko(String name, LinkedList<String> fullAddress){
         int page = 1;
         BusinessInfo businessInfo = new BusinessInfo();
-        GoToPageByUrl("https://checko.ru/search?query=%s&page=%s", name, Integer.toString(page));
-        int countPages = GetCountPagesChecko();
+        goToPageByUrl("https://checko.ru/search?query=%s&page=%s", name, Integer.toString(page));
+        int countPages = getCountPagesChecko();
         for(int i = 1; i <= countPages; i++) {
             List<WebElement> listPhysicalPerson =
                     driver.findElements(By.cssSelector(".uk-container .uk-table tr"));
@@ -100,13 +98,13 @@ public class WebBot {
         return businessInfo;
     }
 
-    private static int GetCountPagesChecko(){
+    private static int getCountPagesChecko(){
         List<WebElement> paginationButtons =
                 driver.findElements(By.cssSelector(".uk-pagination li"));
         return paginationButtons.size() < 1 ? 1 : paginationButtons.size();
     }
 
-    private static BusinessInfo GetInfoByPageChecko(Person type) {
+    private static BusinessInfo getInfoByPageChecko(Person type) {
         String mainInfo = "", directorInfo = "";
         if(Person.Juristic == type){
             List<WebElement> contactInformation = driver.findElements(By.cssSelector("basic .uk-grid"));
@@ -130,28 +128,28 @@ public class WebBot {
         LinkedList<String> fullAddress = new LinkedList<>(
                 Arrays.asList(searchText.getAddress().split(",")));
         if(searchText.getTypePerson() == Person.Juristic){
-            businessInfo = SearchJuristicPersonListOrg(searchText.getFullName(), fullAddress);
+            businessInfo = searchJuristicPersonListOrg(searchText.getFullName(), fullAddress);
         }
         else {
-            businessInfo = SearchPhysicalPersonListOrg(searchText.getShortName(), fullAddress);
+            businessInfo = searchPhysicalPersonListOrg(searchText.getShortName(), fullAddress);
         }
         return businessInfo;
     }
 
-    private static BusinessInfo SearchJuristicPersonListOrg(String name, LinkedList<String> fullAddress){
+    private static BusinessInfo searchJuristicPersonListOrg(String name, LinkedList<String> fullAddress){
         BusinessInfo businessInfo = new BusinessInfo();
         String address = String.join(",", fullAddress);
         String searchText = String.join(",", name, address);
-        GoToPageByUrl("https://www.list-org.com/search?val=%s&type=%s", searchText, "all");
-        if(GetNumberItemsOnPage() == 1){
-            businessInfo = GetJuristicPerson();
+        goToPageByUrl("https://www.list-org.com/search?val=%s&type=%s", searchText, "all");
+        if(getNumberItemsOnPage() == 1){
+            businessInfo = getJuristicPerson();
         }
         else {
-            CheckRecaptcha();
+            checkRecaptcha();
 
             if(fullAddress.size() > 1){
                 fullAddress.removeLast();
-                businessInfo = SearchJuristicPersonListOrg(name, fullAddress);
+                businessInfo = searchJuristicPersonListOrg(name, fullAddress);
             }
             else {
                 return businessInfo;
@@ -160,19 +158,19 @@ public class WebBot {
         return businessInfo;
     }
 
-    private static BusinessInfo SearchPhysicalPersonListOrg(String name, LinkedList<String> fullAddress){
+    private static BusinessInfo searchPhysicalPersonListOrg(String name, LinkedList<String> fullAddress){
         BusinessInfo businessInfo = new BusinessInfo();
-        GoToPageByUrl("https://www.list-org.com/search?val=%s&type=%s", name, "fio");
-        if(GetNumberItemsOnPage() == 1) {
-            businessInfo = GetPhysicalPerson();
+        goToPageByUrl("https://www.list-org.com/search?val=%s&type=%s", name, "fio");
+        if(getNumberItemsOnPage() == 1) {
+            businessInfo = getPhysicalPerson();
         }
         else {
-            SearchPhysicalPersonChecko(name, fullAddress);
+            searchPhysicalPersonChecko(name, fullAddress);
         }
         return businessInfo;
     }
 
-    private static int GetNumberItemsOnPage(){
+    private static int getNumberItemsOnPage(){
         WebElement content = driver.findElement(By.cssSelector(".content p"));
         if(content != null){
             return Integer.parseInt(content.getText().split(" ")[1]);
@@ -180,31 +178,31 @@ public class WebBot {
         return -1;
     }
 
-    private static BusinessInfo GetJuristicPerson(){
+    private static BusinessInfo getJuristicPerson(){
         try {
             WebElement btn = driver.findElement(By.cssSelector(".org_list p label a"));
             btn.click();
-            CheckRecaptcha();
+            checkRecaptcha();
         }
         catch (Exception e){
             System.out.println(e.getMessage());
         }
-        return GetInfoByPageListOrg(Person.Juristic);
+        return getInfoByPageListOrg(Person.Juristic);
     }
 
-    private static BusinessInfo GetPhysicalPerson(){
+    private static BusinessInfo getPhysicalPerson(){
         try {
             WebElement btn = driver.findElement(By.cssSelector(".org_list p a"));
             btn.click();
-            CheckRecaptcha();
+            checkRecaptcha();
         }
         catch (Exception e){
             System.out.println(e.getMessage());
         }
-        return GetInfoByPageListOrg(Person.Physical);
+        return getInfoByPageListOrg(Person.Physical);
     }
 
-    private static BusinessInfo GetInfoByPageListOrg(Person type) {
+    private static BusinessInfo getInfoByPageListOrg(Person type) {
         String mainInfo = "", contactInfo = "";
         if(Person.Juristic == type){
             List<WebElement> contactInformation = driver.findElements(By.cssSelector(".content .card"));
@@ -221,7 +219,7 @@ public class WebBot {
         return businessInfo;
     }
 
-    private static void WaitRecaptcha() {
+    private static void waitRecaptcha() {
         driver.switchTo().frame(0);
         WebElement recaptchaCheckbox = driver.findElement(By.cssSelector("#recaptcha-anchor"));
         recaptchaCheckbox.click();
@@ -238,10 +236,10 @@ public class WebBot {
         Application.stopTimer();
     }
 
-    private static void CheckRecaptcha() {
+    private static void checkRecaptcha() {
         try{
             driver.findElement(By.name("frm"));
-            WaitRecaptcha();
+            waitRecaptcha();
         }
         catch (Exception e){
 //            System.out.println(e.getMessage());
@@ -259,11 +257,11 @@ public class WebBot {
         dictTypesPerson.put("Федеральное государственное автономное образовательное учреждение высшего образования", "ФГАОУ ВО");
     }
 
-    public static int GetDelayRecaptchaSolution(){
+    public static int getDelayRecaptchaSolution(){
         return delayRecaptchaSolution;
     }
 
-    public static void SetDelayRecaptchaSolution(int delay){
+    public static void setDelayRecaptchaSolution(int delay){
         delayRecaptchaSolution = delay;
     }
 }
